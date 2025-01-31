@@ -23,7 +23,6 @@ uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
     
     # Preprocess image (adjust to model input size)
     image = image.resize((100, 100))  # Example resize to 224x224, adjust if necessary
@@ -33,12 +32,14 @@ if uploaded_file is not None:
     # Predict
     prediction = model.predict(image_array)
     
-    # Check the raw prediction output
-    st.write("Prediction (Raw):", prediction)
-    
     # For binary classification with a sigmoid output (0 to 1)
     probability = prediction[0][0]  # For binary output, we have one value
     class_label = "Real" if probability > 0.5 else "Fake"
     
+    # Display prediction and probability
     st.subheader("Prediction Output")
     st.write(f"The image is predicted as: **{class_label}**")
+    st.write(f"Prediction Probability: **{probability:.2f}**")
+
+    # Display the uploaded image
+    st.image(image, caption="Uploaded Image", use_column_width=True)
