@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 import numpy as np
-import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import io
@@ -22,19 +21,25 @@ def preprocess_image(img):
 def index():
     return render_template("index.html")  # Load HTML page
 
-@app.route("/predict", methods=["POST",'[GET]'])
+@app.route("/predict", methods=["POST", "GET"])
 def predict():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["file"]
-    img = Image.open(io.BytesIO(file.read()))  # Open image
+    try:
+        img = Image.open(io.BytesIO(file.read()))  # Open image
+    except Exception as e:
+        return jsonify({"error": f"Error processing image: {str(e)}"}), 400
+    
     img = preprocess_image(img)
 
-    prediction = model.predict(img)
-    predicted_class = np.argmax(prediction, axis=1)[0]  # Get class with highest probability
-
-    return jsonify({"prediction": int(predicted_class)})
+    try:
+        prediction = model.predict(img)
+        predicted_class = np.argmax(prediction, axis=1)[0]  # Get class with highest probability
+        return jsonify({"prediction": int(predicted_class)})
+    except Exception as e:
+        return jsonify({"error": f"Prediction error: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True,host="0.0.0.0",port=5000)
